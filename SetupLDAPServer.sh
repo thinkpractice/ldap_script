@@ -42,7 +42,7 @@ openssl ca -config /etc/pki/tls/openssl.cnf -policy signing_policy -extensions s
 openssl x509 -in ldapcert.pem -text -noout
 
 # Install OpenLDAP Server
-yum update  
+yum -y update  
 yum -y install epel-release  
 yum -y install openldap-clients openldap-servers
 
@@ -58,7 +58,7 @@ cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
 chown -R ldap:ldap /var/lib/ldap/
 
 #Generate sha512 hash for your master LDAP account as shown below.
-cd /etc/openldap/sldap.d/
+cd /etc/openldap/slapd.d/
 
 masterHash=$(slappasswd)
  
