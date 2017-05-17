@@ -8,7 +8,6 @@ set -e
 domainPart1="cbs"
 domainPart2="nl"
 
-
 #OpenSSL configuration
 cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.ORIG
 
@@ -25,7 +24,7 @@ echo '01' > serial.txt
 #openssl req -config /etc/pki/tls/openssl.cnf -new -x509 -extensions v3_ca -keyout private/cakey.pem -out certs/cacert.pem -days 3650
 
 #Without Password - using no password in this article  
-	openssl req -config /etc/pki/tls/openssl.cnf -new -x509 -extensions v3_ca -keyout private/cakey.pem -out certs/cacert.pem -nodes -days 3650
+openssl req -config /etc/pki/tls/openssl.cnf -new -x509 -extensions v3_ca -keyout private/cakey.pem -out certs/cacert.pem -nodes -days 3650
 
 #Give key file read-only permission
 chmod 0400 private/cakey.pem 
@@ -37,11 +36,10 @@ openssl x509 -in certs/cacert.pem -text -noout
 openssl req -config /etc/pki/tls/openssl.cnf -newkey rsa:2048 -sha256 -nodes -out ldapcert.csr -outform PEM -keyout ldapkey.pem
 
 #Sign CSR with new CA
-
-openssl req -config /etc/pki/tls/openssl.cnf -newkey rsa:2048 -sha256 -nodes -out ldapcert.csr -outform PEM -keyout ldapkey.pem
+openssl ca -config /etc/pki/tls/openssl.cnf -policy signing_policy -extensions signing_req -out ldapcert.pem -infiles ldapcert.csr 
 
 #Verify Your new CA 
-openssl x509 -in ldapkey.pem -text -noout
+openssl x509 -in ldapcert.pem -text -noout
 
 # Install OpenLDAP Server
 yum update  
