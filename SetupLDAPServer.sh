@@ -2,8 +2,8 @@
 #https://nfsec.co.uk/openldap-on-centos7-with-tls-ssl-rootca-and-client-in-selinux-mode/
 
 #Set some variables to be used first
-domainPart1 = "cbs"
-domainPart2 = "nl"
+domainPart1="cbs"
+domainPart2="nl"
 
 
 #OpenSSL configuration
