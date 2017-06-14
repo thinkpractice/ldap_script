@@ -154,9 +154,8 @@ then
 dn: olcDatabase={1}monitor,cn=config
 changetype: modify
 replace: olcAccess
-olcAccess: {0}to * by dn.base=\"gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth\" read by dn.base=\"cn=admins,dc=$domainPart1,dc=$domainPart2\"
-
-read by * none
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" 
+  read by dn.base="cn=admins,dc=$domainPart1,dc=$domainPart2" read by * none
 
 dn: olcDatabase={2}hdb,cn=config
 changetype: modify
@@ -177,10 +176,10 @@ dn: olcDatabase={2}hdb,cn=config
 changetype: modify
 add: olcAccess
 olcAccess: {0}to attrs=userPassword,shadowLastChange 
-  by dn=\"cn=admins,dc=$domainPart1,dc=$domainPart2\" 
+  by dn="cn=admins,dc=$domainPart1,dc=$domainPart2" 
   write by anonymous auth by self write by * none
-olcAccess: {1}to dn.base=\"\" by * read
-olcAccess: {2}to * by dn=\"cn=admins,dc=$domainPart1,dc=$domainPart2\" write by * read  
+olcAccess: {1}to dn.base="" by * read
+olcAccess: {2}to * by dn="cn=admins,dc=$domainPart1,dc=$domainPart2" write by * read  
 EOF
 	#Import it
 	ldapmodify -H ldapi:/// -f ldapdomain.ldif
@@ -196,7 +195,7 @@ dn: dc=$domainPart1,dc=$domainPart2
 objectClass: top
 objectClass: dcObject
 objectclass: organization
-o: $organizatioName
+o: $organizationName
 dc: $domainPart1
 
 dn: cn=admins,dc=$domainPart1,dc=$domainPart2
@@ -212,7 +211,7 @@ dn: ou=groupd,dc=$domainPart1,dc=$domainPart2
 objectClass: organizationalUnit
 ou: group"   
 EOF
-	#Import it
+	#Import $it
 	ldapadd -x -D cn=admins,dc=$domainPart1,dc=$domainPart2 -W -f baseldapdomain.ldif
 
 	touch $logDir/step15
@@ -233,7 +232,7 @@ fi
 if [ ! -f "$logDir/step17" ]
 then
 	#Point the LDAP Attributes regarding TLS/SSL certificate location
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> lcbdscerts.ldif
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> cbdscerts.ldif
 dn: cn=config
 changetype: modify
 replace: olcTLSCACertificateFile
