@@ -32,12 +32,12 @@ then
 	cp ./openssl.cnf /etc/pki/tls/openssl.cnf
 
 	#Create index.txt file as a DB about the issues and revoked certs
-	cd /etc/pki/CA/  
-	touch index.txt  
-	printf '01' > serial.txt 
+	cd /etc/pki/CA/
+	touch index.txt
+	printf '01' > serial.txt
 
 	#Use your CA config file to actually create a trusted CA valid for 10 years!
-	#With Password  
+	#With Password
 	openssl req -config /etc/pki/tls/openssl.cnf -new -x509 -extensions v3_ca -keyout private/cakey.pem -out certs/cacert.pem -subj $opensslSubject -days 3650
 
 	touch $logDir/step1
@@ -46,7 +46,7 @@ fi
 
 if [ ! -f "$logDir/step2" ]
 then
-	#Without Password - using no password in this article  
+	#Without Password - using no password in this article
 	openssl req -config /etc/pki/tls/openssl.cnf -new -x509 -extensions v3_ca -keyout private/cakey.pem -out certs/cacert.pem -subj $opensslSubject -nodes -days 3650
 
 	touch $logDir/step2
@@ -56,7 +56,7 @@ fi
 if [ ! -f "$logDir/step3" ]
 then
 	#Give key file read-only permission
-	chmod 0400 private/cakey.pem 
+	chmod 0400 private/cakey.pem
 
 	#Verify Your new CA, to see how long is valid for and that.
 	openssl x509 -in certs/cacert.pem -text -noout
@@ -66,18 +66,18 @@ fi
 if [ ! -f "$logDir/step4" ]
 then
 
-	#Create an CSR for your OpenLDAP server. 
+	#Create an CSR for your OpenLDAP server.
 	openssl req -config /etc/pki/tls/openssl.cnf -newkey rsa:2048 -sha256 -nodes -out ldapcert.csr -subj $opensslSubject -outform PEM -keyout ldapkey.pem
 	touch $logDir/step4
 fi
 
 
 if [ ! -f "$logDir/step5" ]
-then	
+then
 	#Sign CSR with new CA
-	openssl ca -config /etc/pki/tls/openssl.cnf -policy signing_policy -extensions signing_req -out ldapcert.pem -infiles ldapcert.csr 
+	openssl ca -config /etc/pki/tls/openssl.cnf -policy signing_policy -extensions signing_req -out ldapcert.pem -infiles ldapcert.csr
 
-	#Verify Your new CA 
+	#Verify Your new CA
 	openssl x509 -in ldapcert.pem -text -noout
 
 	touch $logDir/step5
@@ -86,8 +86,8 @@ fi
 if [ ! -f "$logDir/step6" ]
 then
 	# Install OpenLDAP Server
-	yum -y update  
-	yum -y install epel-release  
+	yum -y update
+	yum -y install epel-release
 	yum -y install openldap-clients openldap-servers
 
 	touch $logDir/step6
@@ -104,7 +104,7 @@ fi
 
 if [ ! -f "$logDir/step8" ]
 then
-	systemctl enable slapd.service  
+	systemctl enable slapd.service
 	systemctl start slapd.service
 
 
@@ -127,11 +127,11 @@ then
 	cd /etc/openldap/slapd.d/
 
 	masterHash=$(slappasswd)
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> ldaprootpasswd.ldif
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > ldaprootpasswd.ldif
 dn: olcDatabase={0}config,cn=config
 changetype: modify
 add: olcRootPW
-olcRootPW: $masterHash 
+olcRootPW: $masterHash
 EOF
 	#Update LDAP Directory services
 	ldapadd -H ldapi:/// -f ldaprootpasswd.ldif
@@ -150,11 +150,11 @@ fi
 if [ ! -f "$logDir/step13" ]
 then
 	#Create your own domain, RootDN, access policy
-	cat << EOF | sed 's/[ \t]*$//' >> ldapdomain.ldif 
+	cat << EOF | sed 's/[ \t]*$//' > ldapdomain.ldif
 dn: olcDatabase={1}monitor,cn=config
 changetype: modify
 replace: olcAccess
-olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" 
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
   read by dn.base="cn=admins,dc=$domainPart1,dc=$domainPart2" read by * none
 
 dn: olcDatabase={2}hdb,cn=config
@@ -175,11 +175,11 @@ olcRootPW: $masterHash
 dn: olcDatabase={2}hdb,cn=config
 changetype: modify
 add: olcAccess
-olcAccess: {0}to attrs=userPassword,shadowLastChange 
-  by dn="cn=admins,dc=$domainPart1,dc=$domainPart2" 
+olcAccess: {0}to attrs=userPassword,shadowLastChange
+  by dn="cn=admins,dc=$domainPart1,dc=$domainPart2"
   write by anonymous auth by self write by * none
 olcAccess: {1}to dn.base="" by * read
-olcAccess: {2}to * by dn="cn=admins,dc=$domainPart1,dc=$domainPart2" write by * read  
+olcAccess: {2}to * by dn="cn=admins,dc=$domainPart1,dc=$domainPart2" write by * read
 EOF
 	#Import it
 	ldapmodify -H ldapi:/// -f ldapdomain.ldif
@@ -190,7 +190,7 @@ fi
 if [ ! -f "$logDir/step15" ]
 then
 	#Create base domain
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> baseldapdomain.ldif  
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > baseldapdomain.ldif
 dn: dc=$domainPart1,dc=$domainPart2
 objectClass: top
 objectClass: dcObject
@@ -209,7 +209,7 @@ ou: users
 
 dn: ou=groupd,dc=$domainPart1,dc=$domainPart2
 objectClass: organizationalUnit
-ou: group"   
+ou: group"
 EOF
 	#Import $it
 	ldapadd -x -D cn=admins,dc=$domainPart1,dc=$domainPart2 -W -f baseldapdomain.ldif
@@ -219,9 +219,9 @@ fi
 
 if [ ! -f "$logDir/step16" ]
 then
-	#Enable LDAPS - the TLS/SSL version 
-	cp /etc/pki/CA/certs/cacert.pem /etc/openldap/certs/  
-	cp /etc/pki/CA/ldapkey.pem /etc/openldap/certs/  
+	#Enable LDAPS - the TLS/SSL version
+	cp /etc/pki/CA/certs/cacert.pem /etc/openldap/certs/
+	cp /etc/pki/CA/ldapkey.pem /etc/openldap/certs/
 	cp /etc/pki/CA/ldapcert.pem /etc/openldap/certs/
 
 	chown -R ldap:ldap /etc/openldap/certs/*.pem
@@ -232,7 +232,7 @@ fi
 if [ ! -f "$logDir/step17" ]
 then
 	#Point the LDAP Attributes regarding TLS/SSL certificate location
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> cbdscerts.ldif
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > cbdscerts.ldif
 dn: cn=config
 changetype: modify
 replace: olcTLSCACertificateFile
@@ -243,51 +243,59 @@ olcTLSCertificateFile: /etc/openldap/certs/ldapcert.pem
 -
 replace: olcTLSCertificateKeyFile
 olcTLSCertificateKeyFile: /etc/openldap/certs/ldapkey.pem"
-	 
+-
+add: olcTLSProtocolMin
+olcTLSProtocolMin: 3.2
+-
+add: olcTLSCipherSuite
+olcTLSCipherSuite: EECDH:EDH:CAMELLIA:ECDH:RSA:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:!3DES
 EOF
 	#Import it
-	ldapmodify -Y EXTERNAL  -H ldapi:/// -f cbdscerts.ldif  
+	ldapmodify -Y EXTERNAL  -H ldapi:/// -f cbdscerts.ldif
 
 	touch $logDir/step17
 fi
 
-if [ ! -f "$logDir/step19" ]
-then
-	#Use the most secured ciphers available for our secured communication!
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> cipher.ldif
-dn: cn=config
-changetype: modify
-replace: olcTLSCipherSuite
 
-oldTLSCipherSuite: EECDH:EDH:CAMELLIA:ECDH:RSA:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:!3DES
-
-add: olcTLSProtocolMin
-olcTLSProtocolMin: 3.2  
-EOF
-	#Import it
-	ldapmodify -Y EXTERNAL -H ldapi:/// -f cipher.ldif
-
-	touch $logDir/step19
-fi
+#if [ ! -f "$logDir/step19" ]
+#then
+#	#Use the most secured ciphers available for our secured communication!
+#	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > cipher.ldif
+#dn: cn=config
+#changetype: modify
+#replace: olcTLSCipherSuite
+#
+#olcTLSCipherSuite: EECDH:EDH:CAMELLIA:ECDH:RSA:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:!3DES
+#
+#add: olcTLSProtocolMin
+#olcTLSProtocolMin: 3.2
+#EOF
+#	#Import it
+#	ldapmodify -Y EXTERNAL -H ldapi:/// -f cipher.ldif
+#
+#	touch $logDir/step19
+#fi
 
 if [ ! -f "$logDir/step21" ]
 then
-	#Point the LDAP Server to the certs in slapd.conf 
-	printf 'TLSCACertificateFile /etc/openldap/certs/cacert.pem
-	TLSCertificateFile /etc/openldap/certs/ldapcert.pem
-	TLSCertificateKeyFile /etc/openldap/certs/ldapkey.pem ' > /etc/openldap/slapd.conf
+	#Point the LDAP Server to the certs in slapd.conf
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > /etc/openldap/slapd.conf
+TLSCACertificateFile /etc/openldap/certs/cacert.pem
+TLSCertificateFile /etc/openldap/certs/ldapcert.pem
+TLSCertificateKeyFile /etc/openldap/certs/ldapkey.pem
+EOF
 
 	touch $logDir/step21
 fi
 
 if [ ! -f "$logDir/step22" ]
 then
-	#Only use ldapi and ldaps protocols for communication with clients  
+	#Only use ldapi and ldaps protocols for communication with clients
 	printf 'SLAPD_URLS="ldapi:/// ldaps:///"
 
 	SLAPD_LDAP=no
 	SLAPD_LDAPI=no
-	SLAPD_LDAPS=yes' > /etc/sysconfig/slaṕd 
+	SLAPD_LDAPS=yes' > /etc/sysconfig/slaṕd
 
 	touch $logDir/step22
 fi
@@ -298,7 +306,7 @@ then
 	slaptest -f /etc/openldap/slapd.conf
 
 	#Restart slapd service and display status
-	systemctl restart slapd  
+	systemctl restart slapd
 	systemctl status slapd
 
 	touch $logDir/step23
@@ -319,10 +327,10 @@ fi
 if [ ! -f "$logDir/step25" ]
 then
 	#Create sha512 for our new admin
-	adminHash=$(slappasswd) 
+	adminHash=$(slappasswd)
 
 	#Create admin user specific policy
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> admin.ldif
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > admin.ldif
 dn: uid=admin,ou=users,dc=$domainPart1,dc=$domainPart2
 objectClass: top
 objectClass: account
@@ -337,8 +345,8 @@ userPassword: $adminHash
 loginShell: /bin/bash
 gecos: admin
 shadowLastChange: 0
-shadowMax: -1 ####### If you leave this 0 you will end up with constant password change requests
-shadowWarning: 0  
+shadowMax: -1
+shadowWarning: 0
 EOF
 	#Add user
 	ldapadd -x -W -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -f admin.ldif
@@ -349,14 +357,14 @@ fi
 if [ ! -f "$logDir/step26" ]
 then
 	#Make user member of OU "group"
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' >> admingroup.ldif 
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > admingroup.ldif
 dn: cn=admins,ou=group,dc=$domainPart1,dc=$domainPart2
 objectClass: top
 objectClass: posixGroup
-gidNumber: 1000  
+gidNumber: 1000
 EOF
 	#Group import
-	ldapadd -x -W -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -f admingroup.ldif  
+	ldapadd -x -W -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -f admingroup.ldif
 
 	touch $logDir/step26
 fi
@@ -367,14 +375,23 @@ then
 	ldapsearch -x -W -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -b "uid=admin,ou=users,dc=$domainPart1,dc=$domainPart2" "(objectclass=*)"
 
 	#Verify if ldap:// still works locally and if ldaps:// even works?
-	ldapsearch -H ldap://ldap.$domainPart1.$domainPart2 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7  
-	ldapsearch -H ldaps://ldap.$domainPart1.$domainPart2:636 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7  
+	ldapsearch -H ldap://ldap.$domainPart1.$domainPart2 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
+	ldapsearch -H ldaps://ldap.$domainPart1.$domainPart2:636 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
 
-	#Check what TLS attributes are set on your LDAP Directory. 
-	ldapsearch -LLL -Y EXTERNAL -H ldapi:/// -b cn=config|grep TLS  
+	#Check what TLS attributes are set on your LDAP Directory.
+	ldapsearch -LLL -Y EXTERNAL -H ldapi:/// -b cn=config|grep TLS
 
 	#Config SE Linux to allow connect to ldap via http
-	setsebool -P httpd_can_connect_ldap on 
+	setsebool -P httpd_can_connect_ldap on
 
 	touch $logDir/step27
+fi
+
+
+if [ ! -f "$logDir/step28" ]
+then
+    firewall-cmd --add-service=ldap --permanent
+    firewall-cmd --reload
+
+    touch $logDir/step28
 fi
