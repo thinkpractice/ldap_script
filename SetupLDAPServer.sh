@@ -207,7 +207,7 @@ dn: ou=users,dc=$domainPart1,dc=$domainPart2
 objectClass: organizationalUnit
 ou: users
 
-dn: ou=groupd,dc=$domainPart1,dc=$domainPart2
+dn: ou=group,dc=$domainPart1,dc=$domainPart2
 objectClass: organizationalUnit
 ou: group"
 EOF
@@ -255,26 +255,6 @@ EOF
 
 	touch $logDir/step17
 fi
-
-
-#if [ ! -f "$logDir/step19" ]
-#then
-#	#Use the most secured ciphers available for our secured communication!
-#	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > cipher.ldif
-#dn: cn=config
-#changetype: modify
-#replace: olcTLSCipherSuite
-#
-#olcTLSCipherSuite: EECDH:EDH:CAMELLIA:ECDH:RSA:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:!3DES
-#
-#add: olcTLSProtocolMin
-#olcTLSProtocolMin: 3.2
-#EOF
-#	#Import it
-#	ldapmodify -Y EXTERNAL -H ldapi:/// -f cipher.ldif
-#
-#	touch $logDir/step19
-#fi
 
 if [ ! -f "$logDir/step21" ]
 then
@@ -375,8 +355,8 @@ then
 	ldapsearch -x -W -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -b "uid=admin,ou=users,dc=$domainPart1,dc=$domainPart2" "(objectclass=*)"
 
 	#Verify if ldap:// still works locally and if ldaps:// even works?
-	ldapsearch -H ldap://ldap.$domainPart1.$domainPart2 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
-	ldapsearch -H ldaps://ldap.$domainPart1.$domainPart2:636 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
+#	ldapsearch -H ldap://ldap.$domainPart1.$domainPart2 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
+#	ldapsearch -H ldaps://ldap.$domainPart1.$domainPart2:636 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
 
 	#Check what TLS attributes are set on your LDAP Directory.
 	ldapsearch -LLL -Y EXTERNAL -H ldapi:/// -b cn=config|grep TLS
