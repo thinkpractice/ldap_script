@@ -1,6 +1,7 @@
 #Bash file based on tutorial:
 #https://nfsec.co.uk/openldap-on-centos7-with-tls-ssl-rootca-and-client-in-selinux-mode/
 
+#TODO: overwrite config file in every cat command
 #Halt on any error
 set -e
 
