@@ -102,8 +102,7 @@ if [ ! -f "$logDir/step7" ]
 then
 #enable PAM for SSH to use system-auth.
 #Add the line on the very top on the auth section.
-#/etc/pam.d/sshd
-#auth       include      system-auth
+sed -e '0,/^auth/s//auth       include      system-auth\nauth/' /etc/pam.d/sshd > /etc/pam.d/sshd
 
 touch $logDir/step7
 fi
