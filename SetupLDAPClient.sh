@@ -10,6 +10,8 @@ set -e
 #Install needed packages
 if [ ! -f "$logDir/step1" ]
 then
+mkdir $logDir
+
 yum update
 yum install openldap-clients nss-pam-ldapd
 
