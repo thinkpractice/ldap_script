@@ -371,7 +371,7 @@ fi
 
 if [ ! -f "$logDir/step28" ]
 then
-    firewall-cmd --add-service=ldap --permanent
+    firewall-cmd --add-service=ldaps --permanent
     firewall-cmd --reload
 
     touch $logDir/step28

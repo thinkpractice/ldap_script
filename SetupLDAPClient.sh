@@ -1,6 +1,7 @@
 #Set som variables first
 logDir=~/log
-serverAddress=ldap.10.10.10.1
+serverIp=10.10.10.1
+serverAddress=10.10.10.1
 domainPart1="cbs"
 domainPart2="nl"
 
@@ -62,7 +63,7 @@ fi
 if [ ! -f "$logDir/step4" ]
 then
 #Copy RootCA to CLIENT.
-scṕ $serverAddress:/etc/pki/CA/certs/cacert.pem /etc/openldap/cacerts/cacert.pem
+scp $serverIp:/etc/pki/CA/certs/cacert.pem /etc/openldap/cacerts/cacert.pem
 
 touch $logDir/step4
 fi
@@ -120,10 +121,11 @@ fi
 if [ ! -f "$logDir/step9" ]
 then
 #Test whether client can connect to server
-ldapsearch -v -H ldaps://ldap.hextrim.com/ -D cn=admins,dc=$domainPart1,dc=$domainPart2 -W
--x -b dc=$domainPart1,dc=$domainPart2 -d1
+echo "First ldap search"
+ldapsearch -v -H ldaps://$serverAddress/ -D cn=admins,dc=$domainPart1,dc=$domainPart2 -W -x -b dc=$domainPart1,dc=$domainPart2 -d1
+echo "Second ldap search"
 ldapsearch -H ldaps://$serverAddress:636 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -ZZ -d7
-
+echo "openssl"
 openssl s_client -connect $serverAddress:636 -showcerts
 
 touch $logDir/step9
