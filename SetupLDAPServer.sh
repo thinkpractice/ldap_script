@@ -272,7 +272,7 @@ fi
 if [ ! -f "$logDir/step22" ]
 then
 	#Only use ldapi and ldaps protocols for communication with clients
-	printf 'SLAPD_URLS="ldapi:/// ldaps:///"
+	printf 'SLAPD_URLS="ldapi:/// ldap:/// ldaps:///"
 
 	SLAPD_LDAP=no
 	SLAPD_LDAPI=no
@@ -371,7 +371,8 @@ fi
 
 if [ ! -f "$logDir/step28" ]
 then
-    firewall-cmd --add-service=ldaps --permanent
+    #"firewall-cmd --add-service=ldaps --permanent
+    firewall-cmd --add-service=ldap  --permanent
     firewall-cmd --reload
 
     touch $logDir/step28
