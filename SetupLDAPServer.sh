@@ -276,7 +276,7 @@ then
 
 	SLAPD_LDAP=no
 	SLAPD_LDAPI=no
-	SLAPD_LDAPS=yes' > /etc/sysconfig/slaṕd
+	SLAPD_LDAPS=yes' > /etc/sysconfig/slapd
 
 	touch $logDir/step22
 fi
