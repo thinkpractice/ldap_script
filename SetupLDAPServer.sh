@@ -269,6 +269,24 @@ EOF
 	touch $logDir/step21
 fi
 
+if [ ! -f "$logDir/step21a" ]
+then
+
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > /etc/openldap/ldap.conf
+BASE dc=cbs,dc=nl
+URI ldaps://127.0.0.1:636
+
+SSL ON
+# TLS_REQCERT try
+TLS_REQCERT allow
+TLS_CACERTDIR /etc/openldap/certs
+
+SASL_NOCANON on
+EOF
+
+touch $logDir/step21a
+fi
+
 if [ ! -f "$logDir/step22" ]
 then
 	#Only use ldapi and ldaps protocols for communication with clients
@@ -376,4 +394,26 @@ then
     firewall-cmd --reload
 
     touch $logDir/step28
+fi
+
+if [ ! -f "$logDir/step29" ]
+then
+    yum install phpldapadmin
+
+	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > /etc/httpd/conf.d/phpldapadmin.conf  
+<IfModule !mod_authz_core.c>
+    # Apache 2.2
+    Order Allow,Deny
+    Allow from 127.0.0.1
+    Allow from ::1
+    Allow from x.x.x.0/24
+    Deny from all
+</IfModule>
+EOF
+
+    #Change /etc/phpldapadmin/config.php manually to allow for ldaps access.
+    cd /usr/share/phpldapadmin/
+    chown -R apache:apache phpldapadmin/
+    chown apache:apache phpldapadmin/
+    touch $logDir/step29
 fi
