@@ -370,12 +370,9 @@ fi
 
 if [ ! -f "$logDir/step27" ]
 then
+    ldapsearch -x -d1
 	#Verify that user uid=admin exists on server
 	ldapsearch -x -W -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -b "uid=admin,ou=users,dc=$domainPart1,dc=$domainPart2" "(objectclass=*)"
-
-	#Verify if ldap:// still works locally and if ldaps:// even works?
-#	ldapsearch -H ldap://ldap.$domainPart1.$domainPart2 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
-#	ldapsearch -H ldaps://ldap.$domainPart1.$domainPart2:636 -D "cn=admins,dc=$domainPart1,dc=$domainPart2" -w -ZZ -d7
 
 	#Check what TLS attributes are set on your LDAP Directory.
 	ldapsearch -LLL -Y EXTERNAL -H ldapi:/// -b cn=config|grep TLS
@@ -399,17 +396,10 @@ fi
 if [ ! -f "$logDir/step29" ]
 then
     yum install phpldapadmin
-
-	cat << EOF | sed 's/^[ \t]*//' | sed 's/[ \t]*$//' > /etc/httpd/conf.d/phpldapadmin.conf  
-<IfModule !mod_authz_core.c>
-    # Apache 2.2
-    Order Allow,Deny
-    Allow from 127.0.0.1
-    Allow from ::1
-    Allow from x.x.x.0/24
-    Deny from all
-</IfModule>
-EOF
+    # copy our phpldapadmin config.php
+    cp config.php /etc/phpldapadmin/
+    # copy our phpldapadmin.conf file
+    cp phpldapadmin.conf /etc/httpd/conf.d/
 
     #Change /etc/phpldapadmin/config.php manually to allow for ldaps access.
     cd /usr/share/phpldapadmin/
